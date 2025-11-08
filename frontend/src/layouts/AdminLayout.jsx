@@ -5,6 +5,7 @@ import { LayoutDashboard, Users, FolderKanban, Settings } from 'lucide-react'
 import AdminDashboard from '../pages/Admin/Dashboard'
 import ManageUsers from '../pages/Admin/ManageUsers'
 import AllProjects from '../pages/Admin/AllProjects'
+import AdminSettings from '../pages/Admin/Settings'
 
 const AdminLayout = () => {
   const links = [
@@ -24,7 +25,7 @@ const AdminLayout = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<ManageUsers />} />
             <Route path="projects" element={<AllProjects />} />
-            <Route path="settings" element={<div className="card"><h2 className="text-2xl font-bold">Settings</h2></div>} />
+            <Route path="settings" element={<AdminSettings />} />
           </Routes>
         </main>
       </div>

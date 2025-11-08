@@ -39,7 +39,7 @@ const GoogleCallback = () => {
                             team_member: '/team',
                             sales_finance: '/finance'
                         };
-                        
+
                         // Use window.location for hard redirect to reload AuthContext
                         window.location.href = roleRoutes[data.user.role] || '/team';
                     } else {
