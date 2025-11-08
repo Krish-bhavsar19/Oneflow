@@ -1,0 +1,35 @@
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
+
+const Bill = sequelize.define('Bill', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  referenceNo: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false
+  },
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  },
+  supplierName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  totalAmount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false
+  },
+  status: {
+    type: DataTypes.ENUM('draft', 'received', 'paid', 'overdue'),
+    defaultValue: 'draft'
+  }
+}, {
+  timestamps: true
+});
+
+module.exports = Bill;
