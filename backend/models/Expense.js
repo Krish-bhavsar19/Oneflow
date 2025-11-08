@@ -33,6 +33,18 @@ const Expense = sequelize.define('Expense', {
   status: {
     type: DataTypes.ENUM('pending', 'approved', 'rejected'),
     defaultValue: 'pending'
+  },
+  approvedByPm: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  type: {
+    type: DataTypes.ENUM('expense', 'sales_order', 'purchase_order', 'invoice', 'bill'),
+    defaultValue: 'expense'
+  },
+  referenceId: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   }
 }, {
   timestamps: true

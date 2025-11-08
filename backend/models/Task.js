@@ -30,11 +30,18 @@ const Task = sequelize.define('Task', {
     }
   },
   status: {
-    type: DataTypes.ENUM('todo', 'in_progress', 'review', 'completed'),
+    type: DataTypes.ENUM('todo', 'in_progress', 'review', 'completed', 'active'),
     defaultValue: 'todo'
   },
   dueDate: {
     type: DataTypes.DATE
+  },
+  assignedBy: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   }
 }, {
   timestamps: true
