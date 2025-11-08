@@ -22,11 +22,32 @@ const User = sequelize.define('User', {
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
   role: {
     type: DataTypes.ENUM('admin', 'project_manager', 'team_member', 'sales_finance'),
     defaultValue: 'team_member'
+  },
+  isEmailVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  emailVerificationOTP: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  otpExpiry: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  googleId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  },
+  authProvider: {
+    type: DataTypes.ENUM('local', 'google'),
+    defaultValue: 'local'
   }
 }, {
   timestamps: true,

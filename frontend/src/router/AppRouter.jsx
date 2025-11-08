@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Login from '../pages/Auth/Login'
 import Signup from '../pages/Auth/Signup'
+import VerifyEmail from '../pages/Auth/VerifyEmail'
+import GoogleCallback from '../pages/Auth/GoogleCallback'
 import AdminLayout from '../layouts/AdminLayout'
 import PMLayout from '../layouts/PMLayout'
 import TeamLayout from '../layouts/TeamLayout'
@@ -35,6 +37,8 @@ const AppRouter = () => {
     <Routes>
       <Route path="/login" element={user ? <Navigate to={getDashboardRoute()} /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to={getDashboardRoute()} /> : <Signup />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/auth/google/callback" element={<GoogleCallback />} />
       <Route path="/" element={<Navigate to={getDashboardRoute()} />} />
 
       <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>} />
