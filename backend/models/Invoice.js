@@ -20,9 +20,33 @@ const Invoice = sequelize.define('Invoice', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   totalAmount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
+  },
+  projectId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Projects',
+      key: 'id'
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL'
+  },
+  salesOrderId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'SalesOrders',
+      key: 'id'
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL'
   },
   status: {
     type: DataTypes.ENUM('draft', 'sent', 'paid', 'overdue', 'cancelled'),

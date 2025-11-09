@@ -43,7 +43,9 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✓ MySQL connected successfully');
     
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+    // Use sync without alter to avoid index issues
+    // Tables are already created, we just need to verify connection
+    await sequelize.sync({ force: false, alter: false });
     console.log('✓ Database synchronized');
   } catch (error) {
     console.error('✗ Database connection error:');

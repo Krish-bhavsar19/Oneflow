@@ -40,7 +40,7 @@ exports.getTeamMembers = async (req, res) => {
 // Assign task to team member (PM specific)
 exports.assignTask = async (req, res) => {
   try {
-    const { title, description, assignedTo, projectId, dueDate } = req.body;
+    const { title, description, assignedTo, projectId, dueDate, estimatedHours, payPerHour, status } = req.body;
 
     // Verify the user is PM or Admin
     if (!['admin', 'project_manager'].includes(req.user.role)) {
@@ -52,8 +52,11 @@ exports.assignTask = async (req, res) => {
       description,
       assignedTo,
       projectId,
-      status: 'active',
+      status: status || 'todo',
       dueDate,
+      estimatedHours: estimatedHours || 0,
+      payPerHour: payPerHour || 0,
+      loggedHours: 0,
       assignedBy: req.user.id
     });
 
@@ -172,6 +175,92 @@ exports.deleteTask = async (req, res) => {
 
     await task.destroy();
     res.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get tasks by project (Kanban view)
+exports.getTasksByProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const tasks = await Task.findAll({
+      where: { projectId },
+      include: [
+        { model: User, as: 'assignee', attributes: ['id', 'name', 'email'] },
+        { model: User, as: 'assigner', attributes: ['id', 'name', 'email'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    // Group tasks by status for Kanban board
+    const kanbanData = {
+      todo: tasks.filter(t => t.status === 'todo'),
+      in_progress: tasks.filter(t => t.status === 'in_progress'),
+      review: tasks.filter(t => t.status === 'review'),
+      completed: tasks.filter(t => t.status === 'completed')
+    };
+
+    res.json(kanbanData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Bulk update task status (for drag and drop)
+exports.bulkUpdateTaskStatus = async (req, res) => {
+  try {
+    const { taskId, newStatus } = req.body;
+
+    const task = await Task.findByPk(taskId);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    task.status = newStatus;
+    await task.save();
+
+    const updatedTask = await Task.findByPk(taskId, {
+      include: [
+        { model: User, as: 'assignee', attributes: ['id', 'name', 'email'] },
+        { model: User, as: 'assigner', attributes: ['id', 'name', 'email'] }
+      ]
+    });
+
+    res.json(updatedTask);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update logged hours for a task
+exports.updateLoggedHours = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { loggedHours } = req.body;
+
+    const task = await Task.findByPk(taskId);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Verify user is assigned to this task or is admin/PM
+    if (task.assignedTo !== req.user.id && !['admin', 'project_manager'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Not authorized to update this task' });
+    }
+
+    task.loggedHours = loggedHours;
+    await task.save();
+
+    const updatedTask = await Task.findByPk(taskId, {
+      include: [
+        { model: User, as: 'assignee', attributes: ['id', 'name', 'email'] },
+        { model: Project, as: 'project', attributes: ['id', 'title'] }
+      ]
+    });
+
+    res.json(updatedTask);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

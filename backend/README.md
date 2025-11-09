@@ -56,7 +56,23 @@ Or manually:
 CREATE DATABASE oneflow_db;
 ```
 
-7. Start the server:
+7. **Synchronize database schemas (creates/updates all tables):**
+```bash
+npm run sync-db
+```
+
+8. **Verify database schemas are properly set up:**
+```bash
+npm run verify-schema
+```
+
+This will check:
+- All tables exist
+- All columns are correct
+- Foreign keys are properly configured
+- Model associations are working
+
+9. Start the server:
 ```bash
 npm start
 ```
@@ -100,6 +116,29 @@ This will check:
 - MySQL server connectivity
 - Database existence
 - Credentials validity
+
+### Verify Database Schemas
+```bash
+npm run verify-schema
+```
+
+This comprehensive verification checks:
+- All required tables exist
+- Column types and constraints are correct
+- Foreign key relationships are properly set up
+- Model associations are working
+- Indexes are created
+
+### Synchronize Database Schemas
+```bash
+npm run sync-db
+```
+
+This will:
+- Create the database if it doesn't exist
+- Create all tables if they don't exist
+- Update existing tables to match model definitions (development only)
+- Verify foreign keys and relationships
 
 ## API Endpoints
 
@@ -165,7 +204,39 @@ Authorization: Bearer <token>
 
 ## Environment Variables
 
-See `.env.example` for required environment variables.
+Create a `.env` file in the backend directory with the following variables:
+
+```env
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=oneflow_db
+
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
+JWT_EXPIRE=1d
+
+# Frontend URL
+FRONTEND_URL=http://localhost:5173
+
+# Session Secret
+SESSION_SECRET=your_session_secret_key_change_this_in_production
+
+# Google OAuth (Optional - for Google login)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Email Configuration (Optional - for email verification)
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_email_password
+```
 
 ## Database Schema
 

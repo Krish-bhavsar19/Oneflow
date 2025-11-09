@@ -1,12 +1,13 @@
 import { Routes, Route } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
-import { LayoutDashboard, ShoppingCart, FileText, Receipt, CreditCard } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, FileText, Receipt, CreditCard, BarChart3 } from 'lucide-react'
 import FinanceDashboard from '../pages/Finance/Dashboard'
 import SalesOrders from '../pages/Finance/SalesOrders'
 import PurchaseOrders from '../pages/Finance/PurchaseOrders'
 import Invoices from '../pages/Finance/Invoices'
 import Bills from '../pages/Finance/Bills'
+import FinanceAnalytics from '../pages/Finance/Analytics'
 
 const FinanceLayout = () => {
   const links = [
@@ -15,6 +16,7 @@ const FinanceLayout = () => {
     { path: '/finance/purchase-orders', label: 'Purchase Orders', icon: <FileText size={20} /> },
     { path: '/finance/invoices', label: 'Invoices', icon: <Receipt size={20} /> },
     { path: '/finance/bills', label: 'Bills', icon: <CreditCard size={20} /> },
+    { path: '/finance/analytics', label: 'Analytics', icon: <BarChart3 size={20} /> },
   ]
 
   return (
@@ -29,6 +31,7 @@ const FinanceLayout = () => {
             <Route path="purchase-orders" element={<PurchaseOrders />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="bills" element={<Bills />} />
+            <Route path="analytics" element={<FinanceAnalytics />} />
           </Routes>
         </main>
       </div>

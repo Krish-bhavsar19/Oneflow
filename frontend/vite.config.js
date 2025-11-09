@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  cacheDir: '.vite',
   server: {
     port: 3000,
     proxy: {
@@ -10,6 +11,9 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true
       }
+    },
+    watch: {
+      usePolling: true
     }
   }
 })

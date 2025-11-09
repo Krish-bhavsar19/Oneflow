@@ -49,52 +49,48 @@ const Analytics = () => {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const [projects, tasks, timesheets, expenses] = await Promise.all([
-        axios.get('/projects'),
-        axios.get('/tasks/all'),
+      // Fetch PM analytics from the dedicated endpoint
+      const [analyticsRes, timesheets, expenses] = await Promise.all([
+        axios.get('/pm/analytics'),
         axios.get('/timesheets/my'),
         axios.get('/expenses/pm-expenses')
       ]);
+
+      const analytics = analyticsRes.data;
 
       // Calculate stats
       const totalHours = timesheets.data.reduce((sum, t) => sum + parseFloat(t.hoursWorked || 0), 0);
       const totalExpenses = expenses.data.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
       const pendingExpenses = expenses.data.filter(e => !e.approvedByPm).length;
-      const completedTasks = tasks.data.filter(t => t.status === 'completed').length;
+
+      // Calculate totals from analytics
+      const totalProjects = analytics.projectStats?.reduce((sum, stat) => sum + parseInt(stat.count), 0) || 0;
+      const totalTasks = analytics.taskStats?.reduce((sum, stat) => sum + parseInt(stat.count), 0) || 0;
+      const completedTasks = analytics.taskStats?.find(s => s.status === 'completed')?.count || 0;
 
       setStats({
-        totalProjects: projects.data.length,
-        totalTasks: tasks.data.length,
+        totalProjects,
+        totalTasks,
         completedTasks,
         totalHours: totalHours.toFixed(1),
         totalExpenses: totalExpenses.toFixed(2),
         pendingExpenses
       });
 
-      // Project status distribution
-      const projectsByStatus = projects.data.reduce((acc, p) => {
-        acc[p.status] = (acc[p.status] || 0) + 1;
-        return acc;
-      }, {});
-
+      // Project status distribution from analytics
       setProjectData(
-        Object.entries(projectsByStatus).map(([status, count]) => ({
-          name: status.replace('_', ' ').toUpperCase(),
-          value: count
-        }))
+        analytics.projectStats?.map(stat => ({
+          name: stat.status.replace('_', ' ').toUpperCase(),
+          value: parseInt(stat.count)
+        })) || []
       );
 
-      // Task status distribution
-      const tasksByStatus = tasks.data.reduce((acc, t) => {
-        acc[t.status] = (acc[t.status] || 0) + 1;
-        return acc;
-      }, {});
-
+      // Task status distribution from analytics
       setTaskStatusData(
-        Object.entries(tasksByStatus).map(([status, count]) => ({
-          name: status.replace('_', ' ').toUpperCase(),
-          count
-        }))
+        analytics.taskStats?.map(stat => ({
+          name: stat.status.replace('_', ' ').toUpperCase(),
+          count: parseInt(stat.count)
+        })) || []
       );
 
       // Monthly hours (mock data - you can enhance this)
@@ -207,43 +203,55 @@ const Analytics = () => {
 
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Task Status Bar Chart */}
+          {/* Project Distribution Pie Chart */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Tasks by Status</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={taskStatusData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#3B82F6" />
-              </BarChart>
-            </ResponsiveContainer>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Project Distribution</h2>
+            {projectData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={projectData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {projectData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">
+                No project data available
+              </div>
+            )}
           </div>
 
-          {/* Project Status Pie Chart */}
+          {/* Task Status Overview Bar Chart */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Projects by Status</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={projectData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {projectData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Task Status Overview</h2>
+            {taskStatusData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={taskStatusData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">
+                No task data available
+              </div>
+            )}
           </div>
         </div>
 

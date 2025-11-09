@@ -1,143 +1,176 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { CheckSquare, Clock, DollarSign, AlertCircle, Calendar } from 'lucide-react'
-import axios from '../../api/axiosConfig'
-import { toast } from 'react-toastify'
+import { useState, useEffect } from 'react';
+import axios from '../../api/axiosConfig';
+import { useNavigate } from 'react-router-dom';
 
 const TeamDashboard = () => {
-  const [stats, setStats] = useState({ tasks: 0, activeTasks: 0, hours: 0, expenses: 0 })
-  const [activeTasks, setActiveTasks] = useState([])
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    tasks: [],
+    totalTasks: 0,
+    inProgress: 0,
+    completed: 0,
+    totalHours: 0,
+    totalEarnings: 0
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats()
-    fetchActiveTasks()
-  }, [])
+    fetchStats();
+  }, []);
 
   const fetchStats = async () => {
     try {
-      const [tasks, timesheets, expenses] = await Promise.all([
-        axios.get('/tasks/assigned'),
-        axios.get('/timesheets/my'),
-        axios.get('/expenses/my')
-      ])
+      const { data } = await axios.get('/tasks/assigned');
+      
+      const totalHours = data.reduce((sum, task) => sum + parseFloat(task.loggedHours || 0), 0);
+      const totalEarnings = data.reduce((sum, task) => 
+        sum + (parseFloat(task.loggedHours || 0) * parseFloat(task.payPerHour || 0)), 0
+      );
+
       setStats({
-        tasks: tasks.data.length,
-        activeTasks: tasks.data.filter(t => t.status === 'active').length,
-        hours: timesheets.data.reduce((sum, t) => sum + parseFloat(t.hoursWorked), 0),
-        expenses: expenses.data.length
-      })
+        tasks: data.slice(0, 5),
+        totalTasks: data.length,
+        inProgress: data.filter(t => t.status === 'in_progress').length,
+        completed: data.filter(t => t.status === 'completed').length,
+        totalHours,
+        totalEarnings
+      });
     } catch (error) {
-      console.error(error)
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  const fetchActiveTasks = async () => {
-    try {
-      const { data } = await axios.get('/tasks/my-active-tasks')
-      setActiveTasks(data)
-    } catch (error) {
-      toast.error('Failed to fetch active tasks')
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
-
-  const handleStatusUpdate = async (taskId, newStatus) => {
-    try {
-      await axios.put(`/tasks/${taskId}/status`, { status: newStatus })
-      toast.success('Task status updated')
-      fetchActiveTasks()
-      fetchStats()
-    } catch (error) {
-      toast.error('Failed to update task status')
-    }
-  }
-
-  const cards = [
-    { title: 'Active Tasks', value: stats.activeTasks, icon: <AlertCircle size={32} />, color: 'bg-orange-500' },
-    { title: 'All Tasks', value: stats.tasks, icon: <CheckSquare size={32} />, color: 'bg-blue-500' },
-    { title: 'Hours Logged', value: stats.hours, icon: <Clock size={32} />, color: 'bg-green-500' },
-    { title: 'Expenses', value: stats.expenses, icon: <DollarSign size={32} />, color: 'bg-purple-500' },
-  ]
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Team Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {cards.map((card, i) => (
-          <motion.div 
-            key={i} 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: i * 0.1 }} 
-            className="card"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">{card.title}</p>
-                <p className="text-3xl font-bold mt-2">{card.value}</p>
-              </div>
-              <div className={`${card.color} text-white p-4 rounded-lg`}>{card.icon}</div>
-            </div>
-          </motion.div>
-        ))}
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
+        <p className="text-gray-600 mt-1">Track your tasks and progress</p>
       </div>
 
-      {/* Active Tasks Section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <AlertCircle className="text-orange-500" />
-          My Active Tasks
-        </h2>
-        
-        {activeTasks.length > 0 ? (
-          <div className="space-y-4">
-            {activeTasks.map((task) => (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{task.title}</h3>
-                    <p className="text-gray-600 mt-2">{task.description}</p>
-                    <div className="flex gap-4 mt-3 text-sm">
-                      <span className="text-gray-500">
-                        <Calendar className="w-4 h-4 inline mr-1" />
-                        Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No deadline'}
-                      </span>
-                      <span className="text-gray-500">
-                        Project: {task.project?.title}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <select
-                      value={task.status}
-                      onChange={(e) => handleStatusUpdate(task.id, e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="active">Active</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="review">Review</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Tasks"
+          value={stats.totalTasks}
+          subtitle="Assigned to you"
+          color="blue"
+        />
+        <StatCard
+          title="In Progress"
+          value={stats.inProgress}
+          subtitle="Active tasks"
+          color="orange"
+        />
+        <StatCard
+          title="Completed"
+          value={stats.completed}
+          subtitle="Tasks done"
+          color="green"
+        />
+        <StatCard
+          title="Hours Logged"
+          value={stats.totalHours.toFixed(1)}
+          subtitle={`₹${stats.totalEarnings.toLocaleString()} earned`}
+          color="purple"
+        />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <button
+          onClick={() => navigate('/team/tasks')}
+          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-8 text-left hover:shadow-lg transition-all"
+        >
+          <h3 className="text-xl font-semibold mb-2">View My Tasks</h3>
+          <p className="opacity-90">See all tasks assigned to you</p>
+        </button>
+        <button
+          onClick={() => navigate('/team/timesheets')}
+          className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-8 text-left hover:shadow-lg transition-all"
+        >
+          <h3 className="text-xl font-semibold mb-2">My Timesheets</h3>
+          <p className="opacity-90">Track your working hours</p>
+        </button>
+      </div>
+
+      {/* Recent Tasks */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Recent Tasks</h2>
+          <button
+            onClick={() => navigate('/team/tasks')}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            View All →
+          </button>
+        </div>
+        <div className="space-y-3">
+          {stats.tasks.map(task => (
+            <div
+              key={task.id}
+              className="flex justify-between items-start p-4 bg-gray-50 rounded-lg"
+            >
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">{task.title}</h3>
+                <p className="text-sm text-gray-600 mt-1">{task.project?.title}</p>
+                <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                  {task.estimatedHours > 0 && (
+                    <span>Est: {task.estimatedHours}h</span>
+                  )}
+                  {task.loggedHours > 0 && (
+                    <span>Logged: {task.loggedHours}h</span>
+                  )}
+                  {task.payPerHour > 0 && (
+                    <span>₹{task.payPerHour}/h</span>
+                  )}
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-gray-500">
-            <CheckSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <p className="text-lg">No active tasks assigned</p>
-            <p className="text-sm mt-2">You're all caught up!</p>
-          </div>
-        )}
+              </div>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                {task.status.replace('_', ' ')}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TeamDashboard
+const StatCard = ({ title, value, subtitle, color }) => {
+  const colorClasses = {
+    blue: 'from-blue-500 to-blue-600',
+    orange: 'from-orange-500 to-orange-600',
+    green: 'from-green-500 to-green-600',
+    purple: 'from-purple-500 to-purple-600'
+  };
+
+  return (
+    <div className={`bg-gradient-to-br ${colorClasses[color]} text-white rounded-xl p-6`}>
+      <p className="text-sm opacity-90 mb-2">{title}</p>
+      <p className="text-3xl font-bold mb-1">{value}</p>
+      <p className="text-sm opacity-75">{subtitle}</p>
+    </div>
+  );
+};
+
+const getStatusColor = (status) => {
+  const colors = {
+    todo: 'bg-gray-100 text-gray-800',
+    in_progress: 'bg-blue-100 text-blue-800',
+    review: 'bg-yellow-100 text-yellow-800',
+    completed: 'bg-green-100 text-green-800'
+  };
+  return colors[status] || 'bg-gray-100 text-gray-800';
+};
+
+export default TeamDashboard;

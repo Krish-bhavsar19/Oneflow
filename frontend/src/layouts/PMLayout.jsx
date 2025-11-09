@@ -4,10 +4,12 @@ import Sidebar from '../components/Sidebar'
 import { LayoutDashboard, FolderKanban, CheckSquare, Clock, DollarSign, BarChart3, UserPlus } from 'lucide-react'
 import PMDashboard from '../pages/PM/Dashboard'
 import Projects from '../pages/PM/Projects'
+import ProjectDetails from '../pages/PM/ProjectDetails'
 import Tasks from '../pages/PM/Tasks'
 import AssignTasks from '../pages/PM/AssignTasks'
 import Timesheets from '../pages/PM/Timesheets'
 import Expenses from '../pages/PM/Expenses'
+import PMAnalytics from '../pages/PM/Analytics'
 
 const PMLayout = () => {
   const links = [
@@ -29,11 +31,12 @@ const PMLayout = () => {
           <Routes>
             <Route index element={<PMDashboard />} />
             <Route path="projects" element={<Projects />} />
+            <Route path="projects/:id" element={<ProjectDetails />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="assign-tasks" element={<AssignTasks />} />
             <Route path="timesheets" element={<Timesheets />} />
             <Route path="expenses" element={<Expenses />} />
-            <Route path="analytics" element={<div className="card"><h2 className="text-2xl font-bold">Analytics</h2></div>} />
+            <Route path="analytics" element={<PMAnalytics />} />
           </Routes>
         </main>
       </div>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import axios from '../../api/axiosConfig'
-import { Plus } from 'lucide-react'
+import { Plus, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const Projects = () => {
+  const navigate = useNavigate()
   const [projects, setProjects] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', startDate: '', endDate: '', status: 'planning' })
@@ -102,9 +104,18 @@ const Projects = () => {
                   <span>End: {new Date(project.endDate).toLocaleDateString()}</span>
                 </div>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[project.status]}`}>
-                {project.status}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[project.status]}`}>
+                  {project.status}
+                </span>
+                <button 
+                  onClick={() => navigate(`/pm/projects/${project.id}`)} 
+                  className="text-blue-600 hover:text-blue-800"
+                  title="View Details & Manage Tasks"
+                >
+                  <Eye size={18} />
+                </button>
+              </div>
             </div>
           </div>
         ))}

@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Home from '../pages/Home'
 import Login from '../pages/Auth/Login'
 import Signup from '../pages/Auth/Signup'
 import VerifyEmail from '../pages/Auth/VerifyEmail'
@@ -35,11 +36,11 @@ const AppRouter = () => {
 
   return (
     <Routes>
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={user ? <Navigate to={getDashboardRoute()} /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to={getDashboardRoute()} /> : <Signup />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/auth/google/callback" element={<GoogleCallback />} />
-      <Route path="/" element={<Navigate to={getDashboardRoute()} />} />
 
       <Route path="/admin/*" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>} />
       <Route path="/pm/*" element={<ProtectedRoute allowedRoles={['project_manager']}><PMLayout /></ProtectedRoute>} />

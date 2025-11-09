@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import axios from '../../api/axiosConfig'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const AllProjects = () => {
+  const navigate = useNavigate()
   const [projects, setProjects] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ 
@@ -160,6 +162,13 @@ const AllProjects = () => {
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[project.status]}`}>
                   {project.status}
                 </span>
+                <button 
+                  onClick={() => navigate(`/admin/projects/${project.id}`)} 
+                  className="text-blue-600 hover:text-blue-800"
+                  title="View Details & Tasks"
+                >
+                  <Eye size={18} />
+                </button>
                 <button onClick={() => deleteProject(project.id)} className="text-red-600 hover:text-red-800">
                   <Trash2 size={18} />
                 </button>

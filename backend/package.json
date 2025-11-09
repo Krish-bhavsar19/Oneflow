@@ -7,7 +7,12 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "setup-db": "node scripts/createDatabase.js",
-    "test-db": "node scripts/testConnection.js"
+    "test-db": "node scripts/testConnection.js",
+    "verify-db": "node scripts/verifyDatabase.js",
+    "migrate-task-fields": "node scripts/addTaskFields.js",
+    "migrate-financial": "node scripts/addFinancialLinks.js",
+    "sync-db": "node scripts/syncDatabase.js",
+    "seed": "node scripts/seedData.js"
   },
   "keywords": [
     "express",

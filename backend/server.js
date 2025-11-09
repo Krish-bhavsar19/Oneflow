@@ -36,6 +36,11 @@ app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/timesheets', require('./routes/timesheetRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api', require('./routes/billingRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/pm', require('./routes/pmRoutes'));
+app.use('/api/team', require('./routes/teamRoutes'));
+app.use('/api/finance', require('./routes/financeRoutes'));
+app.use('/api/financial', require('./routes/financialRoutes'));
 
 // Health check
 app.get('/', (req, res) => {
